@@ -5,11 +5,14 @@ import {Menu, Trash} from "lucide-react"
 type Tool = "Pencil" | "Rectangle" | "Circle" | "Line"
 
 interface DrawingCanvasProps{
-    color: string;
+    strokColor: string;
     activeTool : Tool;
+    isMenuActive : boolean;
+    setIsMenuActive: (val:boolean)=>void;
+    bgColor : string;
 }
 
-export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
+export default function DrawingCanvas({strokColor,bgColor, activeTool,setIsMenuActive, isMenuActive}:DrawingCanvasProps){
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isDrawing, setIsDrawing] = useState<boolean>(false);
     const previousPoint = useRef< {x:number; y:number} | null>(null)
@@ -61,7 +64,7 @@ export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
 
             const width = endPoint.x - start.x;
             const height = endPoint.y - start.y;
-            context.strokeStyle = color;
+            context.strokeStyle = strokColor;
             context.lineWidth = 5;
 
             context.strokeRect(start.x, start.y, width, height);
@@ -87,7 +90,7 @@ export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
             const radiusY = Math.abs(height/2);
 
             context.beginPath();
-            context.strokeStyle = color;
+            context.strokeStyle = strokColor;
             context.lineWidth = 5;
 
             context.ellipse(
@@ -121,7 +124,7 @@ export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
         if(!start) return;
 
         context.beginPath();
-        context.strokeStyle = color;
+        context.strokeStyle = strokColor;
         context.lineWidth = 3;
 
         context.moveTo(start.x, start.y);
@@ -172,7 +175,7 @@ export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
 
         
         context.beginPath();
-        context.strokeStyle = color;    
+        context.strokeStyle = strokColor;    
         context.lineWidth = 3;
         context.lineCap = "round"
 
@@ -208,7 +211,7 @@ export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
 
             <div className=" absolute my-2 left-8 top-4 z-10">
                 <button
-                onClick={clearCanvas}
+                onClick={()=>setIsMenuActive(!isMenuActive)}
                  className="px-4 py-2 rounded cursor-pointer hover:scale-105 bg-[#1B1B1F] text-white duration-200 transition ease-in-out"><Menu/> </button>
             </div>
         <canvas 
@@ -218,7 +221,8 @@ export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
         onMouseDown={handleMouseDown} 
         onMouseUp={handleMouseUp} 
         onMouseMove={handleMouseMove} 
-        className=" bg-[#2E2D39] borde rounded-lg shadow-sm cursor-crosshair " />
+        style={{backgroundColor : bgColor}}
+        className="borde rounded-lg shadow-sm cursor-crosshair " />
         </div>
     )
 }
