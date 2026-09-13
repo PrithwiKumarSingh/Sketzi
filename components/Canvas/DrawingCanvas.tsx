@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
+import {Menu, Trash} from "lucide-react"
 type Tool = "Pencil" | "Rectangle" | "Circle" | "Line"
 
 interface DrawingCanvasProps{
@@ -199,7 +200,16 @@ export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
             <div className=" absolute my-2 right-5 bottom-5 z-10">
                 <button
                 onClick={clearCanvas}
-                 className="border border-dashed px-4 py-2 rounded cursor-pointer hover:scale-105 bg-red-600 text-white duration-200 transition ease-in-out">Clear Canvas</button>
+                 className=" text-xl border hover:text-red-500 border-gray-600 px-4 py-2 rounded cursor-pointer hover:scale-105 bg-[#1B1B1F] text-white duration-200 transition ease-in-out flex items-center gap-2">
+                    Clear
+                    <Trash size={22}/>
+                    </button>
+            </div>
+
+            <div className=" absolute my-2 left-8 top-4 z-10">
+                <button
+                onClick={clearCanvas}
+                 className="px-4 py-2 rounded cursor-pointer hover:scale-105 bg-[#1B1B1F] text-white duration-200 transition ease-in-out"><Menu/> </button>
             </div>
         <canvas 
         ref={canvasRef} 
@@ -208,7 +218,7 @@ export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
         onMouseDown={handleMouseDown} 
         onMouseUp={handleMouseUp} 
         onMouseMove={handleMouseMove} 
-        className=" bg-white border border-gray-300 rounded-lg shadow-sm cursor-crosshair " />
+        className=" bg-[#2E2D39] borde rounded-lg shadow-sm cursor-crosshair " />
         </div>
     )
 }

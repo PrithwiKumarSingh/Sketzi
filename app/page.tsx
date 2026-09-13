@@ -8,7 +8,7 @@ type Tool = "Pencil" | "Rectangle" | "Circle" | "Line"
 
 export default function Home() {
   const [activeTool, setActiveTool] = useState<Tool>("Pencil");
-  const [color, setColor] = useState<string>("#000000");
+  const [color, setColor] = useState<string>("#ffffff");
 
   const [elements, setElements] = useState<Element[]>([]);
 
@@ -19,7 +19,7 @@ export default function Home() {
       setActiveTool={setActiveTool}
       setColor={setColor}
       />
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-[#2E2D39]">
       <DrawingCanvas
         color={color}
         activeTool={activeTool}
