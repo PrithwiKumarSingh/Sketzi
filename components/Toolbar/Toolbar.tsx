@@ -15,7 +15,7 @@ type Tool = "Pencil" | "Rectangle" | "Circle" | "Line"
 interface ToolbarProps {
     activeTool : Tool;
     setActiveTool : (Tool : Tool)=>void;
-    setColor : (color : string)=>void;
+    setStrokColor : (color : string)=>void;
 }
 
 
@@ -28,7 +28,7 @@ interface buttonContentProps {
 export default function Toolbar({
     activeTool, 
     setActiveTool,
-    setColor
+    setStrokColor
 }: ToolbarProps){
 
     const buttonContent:buttonContentProps[] = [

@@ -1,36 +1,72 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import {Menu, Trash} from "lucide-react"
+import type{Element, LineElement, CircleElement, PencilElement} from "../../types/element"
+import {drawRectangle,drawLine,drawCircle} from "@/utils/drawElement";
+import {renderElement, clearCanvas} from "@/utils/renderCanvas"
+
 type Tool = "Pencil" | "Rectangle" | "Circle" | "Line"
 
 interface DrawingCanvasProps{
-    color: string;
+    strokColor: string;
     activeTool : Tool;
+    isMenuActive : boolean;
+    setIsMenuActive: (val:boolean)=>void;
+    bgColor : string;
 }
 
-export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+export default function DrawingCanvas({strokColor,bgColor, activeTool,setIsMenuActive, isMenuActive}:DrawingCanvasProps){
+    const canvasRef = useRef<HTMLCanvasElement >(null);
     const [isDrawing, setIsDrawing] = useState<boolean>(false);
     const previousPoint = useRef< {x:number; y:number} | null>(null)
     const startPoint = useRef< {x:number; y:number} | null>(null)
+    const [element, setElements] = useState<Element[] | []>([])
+    const [currentElement, setCurrentElement] = useState<Element | null>(null)
 
-    console.log(activeTool);
+    console.log(element);
 
-    const clearCanvas = ()=>{
+    
+
+
+
+
+
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        renderElement(
+            canvas,
+            element,
+            currentElement
+        );
+        }, [element,currentElement]);
+
+    useEffect(() => {
+                resizeCanvas();
+
+                window.addEventListener(
+                    "resize",
+                    resizeCanvas
+                );
+
+                return () => {
+                    window.removeEventListener(
+                    "resize",
+                    resizeCanvas
+                    );
+                };
+}, []);
+
+    const resizeCanvas = () => {
         const canvas = canvasRef.current;
 
-        if(!canvas) return;
+        if (!canvas) return;
 
-        const context = canvas.getContext("2d");
-        if(!context) return;
-
-        context.clearRect(
-            0,
-            0,
-            canvas.width, 
-            canvas.height
-        );
-    }
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+     };
 
     const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>)=>{
         const point = getMousePosition(e);
@@ -40,100 +76,118 @@ export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
 
         if(activeTool==="Pencil"){
             previousPoint.current = point;
+
+            const pencil:PencilElement={
+                id : crypto.randomUUID(),
+                type : "Pencil",
+                points : [point],
+                strokColor : strokColor
+            }
+
+            setCurrentElement(pencil);
         }
-        else{
+        
+        if (activeTool === "Rectangle") {
+
+                startPoint.current = point;
+
+                const rectangle: Element = {
+                    id: crypto.randomUUID(),
+
+                    type: "Rectangle",
+
+                    x: point.x,
+                    y: point.y,
+
+                    width: 0,
+                    height: 0,
+
+                    strokColor,
+                };
+
+                setCurrentElement(rectangle);
+        }
+
+        if(activeTool==="Line"){
             startPoint.current = point;
-        }
-    }
 
- const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>)=>{
+            const line:LineElement = {
+                id : crypto.randomUUID(),
+                type : "Line",
+                startX : point.x, 
+                startY : point.y, 
+                endX : point.x, 
+                endY: point.y,
+                strokColor
 
-        if(activeTool==="Rectangle"){
-            const canvas = canvasRef.current;
-            if(!canvas) return;
-            const context = canvas.getContext("2d");
-            if(!context) return;
-            const start = startPoint.current;
-            if(!start) return;
-            const endPoint = getMousePosition(e);
-            if(!endPoint) return;
-
-            const width = endPoint.x - start.x;
-            const height = endPoint.y - start.y;
-            context.strokeStyle = color;
-            context.lineWidth = 5;
-
-            context.strokeRect(start.x, start.y, width, height);
+            }
+            setCurrentElement(line);
         }
 
         if(activeTool==="Circle"){
-            const canvas = canvasRef.current;
-            if(!canvas) return;
-            const context = canvas.getContext("2d");
-            if(!context) return;
-            const start = startPoint.current;
-            if(!start) return;
-            const endPoint = getMousePosition(e);
-            if(!endPoint) return;
+            startPoint.current = point;
 
-            const width = endPoint.x - start.x;
-            const height = endPoint.y - start.y;
+            const ellipse:CircleElement = {
+                id : crypto.randomUUID(),
+                type : "Circle", 
+                centerX : point.x,
+                centerY : point.y,
+                radiusX : 0,
+                radiusY : 0,
+                rotation : 0,
+                startAngle : 0,
+                endAngle : Math.PI * 2,
+                strokColor: strokColor
+            }
+            setCurrentElement(ellipse)
+        }
+    }
 
-            const CenterX = start.x + width/2; 
-            const CenterY = start.y + height/2;
+    const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>)=>{
 
-            const radiusX = Math.abs(width/2);
-            const radiusY = Math.abs(height/2);
+        if(activeTool==="Rectangle" && currentElement){
+            
 
-            context.beginPath();
-            context.strokeStyle = color;
-            context.lineWidth = 5;
+            setElements((previousElements:Element[]) => [
+                    ...previousElements,
+                    currentElement,
+            ]);
 
-            context.ellipse(
-                CenterX,
-                CenterY,
-                radiusX,
-                radiusY,
-                0,
-                0,
-                Math.PI * 2
-            )
-            context.stroke();
+            setCurrentElement(null);
+        }
 
+        if(activeTool==="Circle" && currentElement){
 
+           setElements((previousElement)=>[
+            ...previousElement,
+            currentElement
+           ])
+
+           setCurrentElement(null);
+        }
+
+        if(activeTool === "Pencil" && currentElement){
+
+            setElements((previousElements)=>[
+                ...previousElements,
+                currentElement
+            ])
         }
 
 
 
-        if(activeTool==="Line"){
+        if(activeTool==="Line" && currentElement){
 
-        const canvas = canvasRef.current;
-        if(!canvas) return;
+        setElements((previousElement)=>[
+            ...previousElement,
+            currentElement
+        ])
+        setCurrentElement(null);
 
-        const context = canvas.getContext("2d");
-        if(!context) return;
+        }
 
-        const endPoint = getMousePosition(e);
-        if(!endPoint) return;
 
-        const start = startPoint.current;
-        if(!start) return;
-
-        context.beginPath();
-        context.strokeStyle = color;
-        context.lineWidth = 3;
-
-        context.moveTo(start.x, start.y);
-
-        context.lineTo(endPoint.x, endPoint.y);
-
-        context.stroke()
-
-        startPoint.current = null;
-
-    }
         setIsDrawing(false);
-
         previousPoint.current = null;
         startPoint.current = null;
     }
@@ -151,43 +205,86 @@ export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
     }
 
      const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>)=>{
-
-
-        if(activeTool!=="Pencil") return;
-
         if(!isDrawing) return;
-
-        const canvas = canvasRef.current;
-        if(!canvas) return; 
-
-        const context = canvas.getContext("2d");
-        if(!context) return;
-
         const point = getMousePosition(e);
         if(!point) return;
 
-        const previous = previousPoint.current;
-        if(!previous) return;
 
+        if(activeTool==="Pencil"){ 
         
-        context.beginPath();
-        context.strokeStyle = color;    
-        context.lineWidth = 3;
-        context.lineCap = "round"
+        setCurrentElement((previous)=>{
+            if(!previous) return null;
 
-        context.moveTo(
-            previous.x,
-            previous.y
-        )
+            if(previous.type !== "Pencil") return previous;
 
-        context.lineTo(
-            point.x,
-            point.y
-        )
+            return{
+                ...previous,
+                points : [
+                    ...previous.points,
+                    point
+                ]
+            }
+        })
 
-        context.stroke();
-    
         previousPoint.current = point;
+    }
+
+        if(activeTool==="Rectangle"){
+            const start = startPoint.current;
+            if(!start) return;
+
+            setCurrentElement((previous)=>{
+                if(!previous) return null;
+
+                return {
+                    ...previous, 
+                    width: point.x - start.x,
+                    height : point.y - start.y
+
+                }
+            })
+        }
+
+        if(activeTool==="Circle"){
+            const start = startPoint.current;
+            if(!start) return; 
+
+            const width = point.x - start.x;
+            const height = point.y - start.y;
+
+            const centerX = start.x + width/2; 
+            const centerY = start.y + height/2;
+
+            const radiusX = Math.abs(width/2);
+            const radiusY = Math.abs(height/2);
+
+            setCurrentElement((previous)=>{
+                if(!previous) return null;
+
+                return{
+                    ...previous,
+                    centerX : centerX,
+                    centerY : centerY,
+                    radiusX : radiusX,
+                    radiusY : radiusY
+                }
+            })
+            
+        }
+
+        if(activeTool==="Line"){
+            setCurrentElement((previous)=>{
+                if(!previous) return null;
+
+                return{
+                    ...previous, 
+                    endX : point.x,
+                    endY : point.y
+
+                }
+            })
+        }
+    
     
         
     }
@@ -198,17 +295,28 @@ export default function DrawingCanvas({color, activeTool}:DrawingCanvasProps){
         <div>
             <div className=" absolute my-2 right-5 bottom-5 z-10">
                 <button
-                onClick={clearCanvas}
-                 className="border border-dashed px-4 py-2 rounded cursor-pointer hover:scale-105 bg-red-600 text-white duration-200 transition ease-in-out">Clear Canvas</button>
+                onClick={()=>{
+                    setElements([]);
+                    clearCanvas
+                }}
+                 className=" text-xl border hover:text-red-500 border-gray-600 px-4 py-2 rounded cursor-pointer hover:scale-105 bg-[#1B1B1F] text-white duration-200 transition ease-in-out flex items-center gap-2">
+                    Clear
+                    <Trash size={22}/>
+                    </button>
+            </div>
+
+            <div className=" absolute my-2 left-8 top-4 z-10">
+                <button
+                onClick={()=>setIsMenuActive(!isMenuActive)}
+                 className="px-4 py-2 rounded cursor-pointer hover:scale-105 bg-[#1B1B1F] text-white duration-200 transition ease-in-out"><Menu/> </button>
             </div>
         <canvas 
         ref={canvasRef} 
-        width={1900} 
-        height={950} 
         onMouseDown={handleMouseDown} 
         onMouseUp={handleMouseUp} 
         onMouseMove={handleMouseMove} 
-        className=" bg-white border border-gray-300 rounded-lg shadow-sm cursor-crosshair " />
+        style={{backgroundColor : bgColor}}
+        className=" insert-0 z-0 w-full h-full shadow-sm cursor-crosshair " />
         </div>
     )
 }
