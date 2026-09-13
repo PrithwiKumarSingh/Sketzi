@@ -8,25 +8,42 @@ export interface RectangleElement{
     y : number;
     width : number;
     height : number;
+    strokColor : string;
 }
 
 export interface CircleElement{
     id : string;
     type : "Circle";
-    x : number; 
-    y : number; 
-    radius : number;
+    centerX : number; 
+    centerY : number; 
+    radiusX : number;
+    radiusY : number;
+    rotation : number;
+    startAngle : number;
+    endAngle : number;
+    strokColor : string;
 }
 
 export interface LineElement{
     id : string; 
     type : "Line"; 
-    x : number; 
-    y : number; 
     startX : number;
     startY : number;
     endX : number; 
     endY : number;
+    strokColor : string;
 }
 
-export type Element = RectangleElement | CircleElement | LineElement
+export interface Point{
+    x : number;
+    y : number;
+}
+
+export interface PencilElement{
+    id : string;
+    type : "Pencil";
+    points : Point[];
+    strokColor : string;
+}
+
+export type Element = RectangleElement | CircleElement | LineElement | PencilElement
