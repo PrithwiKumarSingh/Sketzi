@@ -70,7 +70,7 @@ import {
                 context.save();
 
                 context.strokeStyle = "#6965db";
-                context.lineWidth = 1;
+                context.lineWidth = 3;
                 context.setLineDash([6, 4]);
 
                 context.strokeRect(
