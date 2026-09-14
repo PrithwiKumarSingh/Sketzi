@@ -5,8 +5,9 @@ import {Menu, Trash} from "lucide-react"
 import type{Element, LineElement, CircleElement, PencilElement} from "../../types/element"
 import {drawRectangle,drawLine,drawCircle} from "@/utils/drawElement";
 import {renderElement, clearCanvas} from "@/utils/renderCanvas"
+import {findElementAtPoint} from "@/utils/isPositionInsideElement";
 
-type Tool = "Pencil" | "Rectangle" | "Circle" | "Line"
+type Tool = "Pencil" | "Rectangle" | "Circle" | "Line" | "Selection"
 
 interface DrawingCanvasProps{
     strokColor: string;
@@ -23,15 +24,14 @@ export default function DrawingCanvas({strokColor,bgColor, activeTool,setIsMenuA
     const startPoint = useRef< {x:number; y:number} | null>(null)
     const [element, setElements] = useState<Element[] | []>([])
     const [currentElement, setCurrentElement] = useState<Element | null>(null)
+    const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState<{
+    x: number;
+    y: number;
+    } | null>(null);
 
-    console.log(element);
-
-    
-
-
-
-
-
+    // console.log(selectedElementId);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -39,9 +39,10 @@ export default function DrawingCanvas({strokColor,bgColor, activeTool,setIsMenuA
         renderElement(
             canvas,
             element,
-            currentElement
+            currentElement,
+            selectedElementId
         );
-        }, [element,currentElement]);
+        }, [element,currentElement,selectedElementId]);
 
     useEffect(() => {
                 resizeCanvas();
@@ -72,6 +73,22 @@ export default function DrawingCanvas({strokColor,bgColor, activeTool,setIsMenuA
         const point = getMousePosition(e);
         if(!point) return;
 
+        if (activeTool === "Selection") {
+            const elem = findElementAtPoint(point, element);
+
+            if (elem) {
+                console.log("START DRAG");
+                setSelectedElementId(elem.id);
+                setIsDragging(true);
+                setDragStart(point);
+            } else {
+                setSelectedElementId(null);
+                setIsDragging(false);
+                setDragStart(null);
+            }
+
+            return;
+            }
         setIsDrawing(true);
 
         if(activeTool==="Pencil"){
@@ -156,6 +173,12 @@ export default function DrawingCanvas({strokColor,bgColor, activeTool,setIsMenuA
             setCurrentElement(null);
         }
 
+        if (activeTool === "Selection") {
+            setIsDragging(false);
+            setDragStart(null);
+            return;
+            }
+
         if(activeTool==="Circle" && currentElement){
 
            setElements((previousElement)=>[
@@ -205,10 +228,43 @@ export default function DrawingCanvas({strokColor,bgColor, activeTool,setIsMenuA
     }
 
      const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>)=>{
-        if(!isDrawing) return;
+        
         const point = getMousePosition(e);
         if(!point) return;
 
+        if (activeTool === "Selection") {
+            if (!isDragging || !selectedElementId || !dragStart) {
+                return;
+            }
+
+            const dx = point.x - dragStart.x;
+            const dy = point.y - dragStart.y;
+
+            setElements((previousElements) =>
+                previousElements.map((element) => {
+                if (element.id !== selectedElementId) {
+                    return element;
+                }
+
+                if (element.type !== "Rectangle") {
+                    return element;
+                }
+
+                return {
+                    ...element,
+                    x: element.x + dx,
+                    y: element.y + dy,
+                };
+                })
+            );
+
+            setDragStart(point);
+
+            return;
+            }
+
+
+            if(!isDrawing) return;
 
         if(activeTool==="Pencil"){ 
         

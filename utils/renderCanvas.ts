@@ -12,7 +12,8 @@ import {
     export const renderElement = (
         canvas : HTMLCanvasElement,
         element : Element[],
-        currentElement : Element | null
+        currentElement : Element | null,
+        selectedElementId : string | null
     )=>{
         if(!canvas)return;
 
@@ -42,6 +43,7 @@ import {
         })
 
         if (currentElement) {
+            
             if(currentElement.type === "Rectangle"){
             drawRectangle(context,currentElement);
             }
@@ -58,6 +60,29 @@ import {
             }
 
         }
+
+        if (selectedElementId) {
+            const selectedElement = element.find(
+                (elem) => elem.id === selectedElementId
+            );
+
+            if (selectedElement && selectedElement.type === "Rectangle") {
+                context.save();
+
+                context.strokeStyle = "#6965db";
+                context.lineWidth = 1;
+                context.setLineDash([6, 4]);
+
+                context.strokeRect(
+                selectedElement.x - 5,
+                selectedElement.y - 5,
+                selectedElement.width + 10,
+                selectedElement.height + 10
+                );
+
+                context.restore();
+            }
+            }
     }
 
 

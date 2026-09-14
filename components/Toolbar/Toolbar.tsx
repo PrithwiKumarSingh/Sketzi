@@ -6,10 +6,12 @@ import {
     Square,
     Circle,
     Minus,
-    LucideIcon
+    LucideIcon,
+    MousePointer2
 } from "lucide-react"
 
-type Tool = "Pencil" | "Rectangle" | "Circle" | "Line"
+
+type Tool = "Pencil" | "Rectangle" | "Circle" | "Line" |"Selection";
 
 
 interface ToolbarProps {
@@ -47,6 +49,10 @@ export default function Toolbar({
         {
             type : "Line", 
             icon : Minus
+        },
+        {
+            type : "Selection",
+            icon : MousePointer2
         }
     ]
     return(

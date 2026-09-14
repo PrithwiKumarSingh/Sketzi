@@ -1,5 +1,5 @@
 
-export type Tool = "Select" | "Pencil" | "Rectangle" | "Circle" | "Line" ;
+export type Tool = "Selection" | "Pencil" | "Rectangle" | "Circle" | "Line" ;
 
 export interface RectangleElement{
     id : string;
